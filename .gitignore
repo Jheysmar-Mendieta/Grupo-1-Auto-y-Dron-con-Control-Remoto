@@ -1,0 +1,22 @@
+# Dependencias y entornos
+node_modules/
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.env.local
+
+# Builds y compilaciones Arduino
+*.hex
+*.elf
+build/
+
+# Archivos de Sistema Operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+*.swp

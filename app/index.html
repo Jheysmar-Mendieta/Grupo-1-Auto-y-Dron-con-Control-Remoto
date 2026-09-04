@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Control Auto & Dron - Grupo 1</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="cockpit-container">
+    <!-- Encabezado y Estado de Conexión -->
+    <header class="header">
+      <div class="branding">
+        <span class="badge">GRUPO 1</span>
+        <h1>Control Remoto</h1>
+      </div>
+      <div class="connection-status">
+        <span class="status-indicator online"></span>
+        <span id="lbl-status">Listo / Calibrado</span>
+      </div>
+    </header>
+
+    <!-- Selector de Modo de Vehículo -->
+    <section class="mode-selector">
+      <button id="btn-mode-car" class="mode-btn active" type="button">🚗 Modo Auto</button>
+      <button id="btn-mode-drone" class="mode-btn" type="button">🚁 Modo Dron</button>
+    </section>
+
+    <!-- Panel de Telemetría y Sensor (HUD) -->
+    <section class="telemetry-panel">
+      <h2>Sensores en Tiempo Real (Giroscopio)</h2>
+      <div class="gyro-grid">
+        <div class="gauge-card">
+          <span class="gauge-title">Cabeceo (Pitch / Beta)</span>
+          <div class="gauge-value" id="val-pitch">0°</div>
+          <span class="gauge-sub" id="sub-pitch">Adelante / Atrás</span>
+        </div>
+        <div class="gauge-card">
+          <span class="gauge-title">Alabeo (Roll / Gamma)</span>
+          <div class="gauge-value" id="val-roll">0°</div>
+          <span class="gauge-sub" id="sub-roll">Giro Izq / Der</span>
+        </div>
+      </div>
+
+      <!-- Horizonte Artificial Visual -->
+      <div class="horizon-wrapper">
+        <div class="horizon-disc" id="horizon-disc">
+          <div class="horizon-sky"></div>
+          <div class="horizon-ground"></div>
+          <div class="crosshair"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Panel de Control y Seguridad -->
+    <section class="control-panel">
+      <!-- Botón de permiso para sensores en iOS/Android -->
+      <button id="btn-sensor-toggle" class="action-btn secondary" type="button">
+        Activar Sensor Móvil
+      </button>
+
+      <!-- Deadman Switch / Gatillo de Seguridad -->
+      <button id="btn-deadman" class="deadman-btn" type="button">
+        MANTENER PARA CONDUCIR
+      </button>
+
+      <!-- Botón de Parada de Emergencia -->
+      <button id="btn-emergency" class="action-btn danger" type="button">
+        PARADA DE EMERGENCIA
+      </button>
+    </section>
+
+    <footer class="footer">
+      <p>Programación 7° Año • GEdeCon • Onesti - Silvero - Mendieta</p>
+    </footer>
+  </div>
+
+  <script src="js/sensors.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
