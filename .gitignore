@@ -41,3 +41,7 @@ desktop.ini
 .vscode/
 .idea/
 *.swp
+
+# Evitar carpetas duplicadas en GitHub (ya estan en APK, Auto y Dron)
+firmware/
+app/
