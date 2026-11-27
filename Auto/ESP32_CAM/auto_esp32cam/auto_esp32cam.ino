@@ -113,6 +113,7 @@ esp_err_t atenderStatus(httpd_req_t *req) {
 
   httpd_resp_set_type(req, "application/json");
   httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+  httpd_resp_set_hdr(req, "Connection", "close");
   return httpd_resp_send(req, json, len);
 }
 
@@ -128,39 +129,61 @@ esp_err_t atenderAction(httpd_req_t *req) {
   char query[64];
   tUltimoComandoMs = millis();
 
-  if (httpd_req_get_url_query_str(req, query, sizeof(query)) == ESP_OK) {
-    char val[16];
+  // Manejo de error si la petición HTTP viene vacía o mal formada
+  if (httpd_req_get_url_query_str(req, query, sizeof(query)) != ESP_OK) {
+    marchaActual = 'S';
+    Serial.write('S');
+    httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Parametro query faltante o invalido");
+    return ESP_FAIL;
+  }
 
-    // 1. Mando de ruedas (F, B, L, R, S) o pasos rápidos de servo (U, D, C)
-    if (httpd_query_key_value(query, "go", val, sizeof(val)) == ESP_OK) {
-      char cmd = toupper(val[0]);
-      if (cmd == 'U') {
-        enviarAnguloServoAlArduino(anguloServoActual + 10);
-      } else if (cmd == 'D') {
-        enviarAnguloServoAlArduino(anguloServoActual - 10);
-      } else if (cmd == 'C') {
-        enviarAnguloServoAlArduino(45);
-      } else {
-        marchaActual = cmd;
-        Serial.write(cmd); // Ráfaga doble inmediata al Arduino Uno (evita pérdida de byte en SoftwareSerial)
-        Serial.write(cmd);
-      }
-    }
+  char val[16];
+  bool comandoValido = false;
 
-    // 2. Mando directo de ángulo de servo: /action?servo=45
-    if (httpd_query_key_value(query, "servo", val, sizeof(val)) == ESP_OK) {
-      enviarAnguloServoAlArduino(atoi(val));
+  // 1. Mando de ruedas (F, B, L, R, S) o pasos rápidos de servo (U, D, C)
+  if (httpd_query_key_value(query, "go", val, sizeof(val)) == ESP_OK) {
+    char cmd = toupper(val[0]);
+    if (cmd == 'U') {
+      enviarAnguloServoAlArduino(anguloServoActual + 10);
+      comandoValido = true;
+    } else if (cmd == 'D') {
+      enviarAnguloServoAlArduino(anguloServoActual - 10);
+      comandoValido = true;
+    } else if (cmd == 'C') {
+      enviarAnguloServoAlArduino(45);
+      comandoValido = true;
+    } else if (cmd == 'F' || cmd == 'B' || cmd == 'L' || cmd == 'R' || cmd == 'S') {
+      marchaActual = cmd;
+      Serial.write(cmd); // Ráfaga doble inmediata al Arduino Uno (evita pérdida de byte en SoftwareSerial)
+      Serial.write(cmd);
+      comandoValido = true;
+    } else {
+      // Manejo de error: comando desconocido -> frenar por seguridad
+      marchaActual = 'S';
+      Serial.write('S');
     }
+  }
 
-    // 3. Mando relativo o absoluto en /action?tilt=X
-    if (httpd_query_key_value(query, "tilt", val, sizeof(val)) == ESP_OK) {
-      int v = atoi(val);
-      if (v >= 15 && v <= 75) {
-        enviarAnguloServoAlArduino(v);
-      } else {
-        enviarAnguloServoAlArduino(anguloServoActual + v);
-      }
+  // 2. Mando directo de ángulo de servo: /action?servo=45
+  if (httpd_query_key_value(query, "servo", val, sizeof(val)) == ESP_OK) {
+    enviarAnguloServoAlArduino(atoi(val));
+    comandoValido = true;
+  }
+
+  // 3. Mando relativo o absoluto en /action?tilt=X
+  if (httpd_query_key_value(query, "tilt", val, sizeof(val)) == ESP_OK) {
+    int v = atoi(val);
+    if (v >= 15 && v <= 75) {
+      enviarAnguloServoAlArduino(v);
+    } else {
+      enviarAnguloServoAlArduino(anguloServoActual + v);
     }
+    comandoValido = true;
+  }
+
+  if (!comandoValido) {
+    httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Comando no reconocido");
+    return ESP_FAIL;
   }
 
   return atenderStatus(req);
@@ -276,7 +299,15 @@ void setup() {
 }
 
 void loop() {
-  // Lectura Serial carácter por carácter (100% no bloqueante)
+  // 1. Fail-Safe (Watchdog por pérdida de conexión Wi-Fi):
+  //    Si el auto estaba en movimiento y pasan más de 700 ms sin recibir paquetes de la App, frenar
+  if (marchaActual != 'S' && (millis() - tUltimoComandoMs > 700)) {
+    marchaActual = 'S';
+    Serial.write('S');
+    Serial.write('S');
+  }
+
+  // 2. Lectura Serial carácter por carácter (100% no bloqueante) con manejo de desbordamiento
   while (Serial.available()) {
     char c = (char)Serial.read();
     if (c == '\n' || c == '\r') {
@@ -288,6 +319,7 @@ void loop() {
     } else if (serialLineLen < sizeof(serialLineBuf) - 1) {
       serialLineBuf[serialLineLen++] = c;
     } else {
+      // Error de trama demasiado larga (ruido serial): limpiar buffer
       serialLineLen = 0;
     }
   }

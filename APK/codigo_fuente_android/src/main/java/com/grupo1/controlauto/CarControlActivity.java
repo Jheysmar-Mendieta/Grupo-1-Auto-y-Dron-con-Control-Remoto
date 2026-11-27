@@ -28,6 +28,7 @@ import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.provider.Settings;
 import android.text.InputType;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
@@ -81,6 +82,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class CarControlActivity extends AppCompatActivity implements SensorEventListener {
 
+    private static final String TAG = "CarControlActivity";
     public static final String DEFAULT_ESP32_IP = "192.168.4.1";
     private static final String PREFS_NAME = "CarControlPrefs";
     private static final String PREF_KEY_ESP32_IP = "esp32_ip";
@@ -117,17 +119,18 @@ public class CarControlActivity extends AppCompatActivity implements SensorEvent
     private volatile String activeHeldCommand = null;
     private volatile Network cachedWifiNetwork = null;
     private volatile long lastWifiLookupMs = 0L;
+    private volatile int consecutiveHttpErrors = 0;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private boolean autoConnectAttemptedOnResume = false;
 
-    // Repetición automática mientras se mantiene presionado un botón direccional (evita pérdida de toques)
+    // Repetición automática cada 200 ms mientras se mantiene presionado un botón (mantiene vivo el watchdog del auto)
     private final Runnable heldCommandRepeatRunnable = new Runnable() {
         @Override
         public void run() {
             if (!isDirectionButtonHeld || activeHeldCommand == null || isFinishing()) return;
             if (isWallAhead && "F".equals(activeHeldCommand)) return;
             enviarComando(activeHeldCommand);
-            mainHandler.postDelayed(this, 220L);
+            mainHandler.postDelayed(this, 200L);
         }
     };
 
@@ -412,7 +415,23 @@ public class CarControlActivity extends AppCompatActivity implements SensorEvent
         conn.setConnectTimeout(connectTimeoutMs);
         conn.setReadTimeout(readTimeoutMs);
         conn.setUseCaches(false);
+        conn.setRequestProperty("Connection", "close");
         return conn;
+    }
+
+    private static void cerrarConexionSegura(HttpURLConnection conn) {
+        if (conn == null) return;
+        try {
+            InputStream in = conn.getInputStream();
+            if (in != null) in.close();
+        } catch (Exception ignored) {}
+        try {
+            InputStream err = conn.getErrorStream();
+            if (err != null) err.close();
+        } catch (Exception ignored) {}
+        try {
+            conn.disconnect();
+        } catch (Exception ignored) {}
     }
 
     private void conectarEsp32Cam(final boolean mostrarDialogoSiFalla) {
@@ -505,19 +524,22 @@ public class CarControlActivity extends AppCompatActivity implements SensorEvent
                         || SystemClock.uptimeMillis() < motorPriorityUntilMs) {
                     return;
                 }
-                conn = abrirConexionHttpPorWifi("http://" + esp32Ip + "/status", 500, 500);
+                conn = abrirConexionHttpPorWifi("http://" + esp32Ip + "/status", 350, 350);
                 conn.setRequestMethod("GET");
-                if (conn.getResponseCode() == 200) {
+                int code = conn.getResponseCode();
+                if (code == 200) {
+                    consecutiveHttpErrors = 0;
                     String json = leerTextoStream(conn.getInputStream());
                     procesarJsonTelemetriaEsp32(json);
                 } else {
-                    conn.disconnect();
+                    Log.w(TAG, "Error HTTP en /status: codigo " + code);
                 }
-            } catch (Exception ignored) {
-                if (conn != null) {
-                    try { conn.disconnect(); } catch (Exception ignored2) {}
-                }
+            } catch (IOException e) {
+                Log.w(TAG, "Timeout o error de red en /status: " + e.getMessage());
+            } catch (Exception e) {
+                Log.e(TAG, "Error inesperado en /status", e);
             } finally {
+                cerrarConexionSegura(conn);
                 statusReqInFlight.set(false);
             }
         });
@@ -1204,56 +1226,53 @@ public class CarControlActivity extends AppCompatActivity implements SensorEvent
                     if (cmdLogico == null && servoDeg == null) break;
 
                     String cmdHttp = (cmdLogico != null) ? traducirComandoMotorEsp32(cmdLogico) : null;
-                    boolean enviadoOk = false;
-
-                    for (int intento = 0; intento < 2 && !enviadoOk; intento++) {
-                        String masNuevo = pendingMotorCmd.get();
-                        if (cmdLogico != null && masNuevo != null && !masNuevo.equals(cmdLogico)) {
-                            break;
-                        }
-                        motorPriorityUntilMs = SystemClock.uptimeMillis() + 400L;
-                        HttpURLConnection conn = null;
-                        try {
-                            StringBuilder urlSb = new StringBuilder("http://").append(esp32Ip).append("/action?");
-                            if (cmdHttp != null) {
-                                urlSb.append("go=").append(cmdHttp);
-                                if (servoDeg != null) {
-                                    urlSb.append("&servo=").append(servoDeg);
-                                }
-                            } else {
-                                urlSb.append("servo=").append(servoDeg);
+                    motorPriorityUntilMs = SystemClock.uptimeMillis() + 300L;
+                    HttpURLConnection conn = null;
+                    try {
+                        StringBuilder urlSb = new StringBuilder("http://").append(esp32Ip).append("/action?");
+                        if (cmdHttp != null) {
+                            urlSb.append("go=").append(cmdHttp);
+                            if (servoDeg != null) {
+                                urlSb.append("&servo=").append(servoDeg);
                             }
+                        } else {
+                            urlSb.append("servo=").append(servoDeg);
+                        }
 
-                            conn = abrirConexionHttpPorWifi(urlSb.toString(), 450, 450);
-                            conn.setRequestMethod("GET");
-                            int code = conn.getResponseCode();
-                            if (code == 200) {
-                                String body = leerTextoStream(conn.getInputStream());
-                                procesarJsonTelemetriaEsp32(body);
-                                enviadoOk = true;
-                                final String okLogico = cmdLogico;
-                                final String okHttp = cmdHttp;
-                                final Integer okServo = servoDeg;
-                                mainHandler.post(() -> {
-                                    if (!isFinishing() && tvGyroData != null) {
-                                        if (okLogico != null) {
-                                            tvGyroData.setText(String.format(Locale.US,
-                                                    "✓ MOTOR [%s -> go=%s] | SERVO %d° (%s)",
-                                                    okLogico, okHttp, currentServoAngle, esp32Ip));
-                                        } else if (okServo != null) {
-                                            tvGyroData.setText(String.format(Locale.US,
-                                                    "✓ SERVO CÁMARA -> %d° (%s)", okServo, esp32Ip));
-                                        }
+                        // Timeout corto (280 ms) sin reintentos bloqueantes para que la cola nunca se trabe
+                        conn = abrirConexionHttpPorWifi(urlSb.toString(), 280, 280);
+                        conn.setRequestMethod("GET");
+                        int code = conn.getResponseCode();
+                        if (code == 200) {
+                            consecutiveHttpErrors = 0;
+                            String body = leerTextoStream(conn.getInputStream());
+                            procesarJsonTelemetriaEsp32(body);
+                            final String okLogico = cmdLogico;
+                            final String okHttp = cmdHttp;
+                            final Integer okServo = servoDeg;
+                            mainHandler.post(() -> {
+                                if (!isFinishing() && tvGyroData != null) {
+                                    if (okLogico != null) {
+                                        tvGyroData.setText(String.format(Locale.US,
+                                                "✓ MOTOR [%s -> go=%s] | SERVO %d° (%s)",
+                                                okLogico, okHttp, currentServoAngle, esp32Ip));
+                                    } else if (okServo != null) {
+                                        tvGyroData.setText(String.format(Locale.US,
+                                                "✓ SERVO CÁMARA -> %d° (%s)", okServo, esp32Ip));
                                     }
-                                });
-                            } else {
-                                conn.disconnect();
-                            }
-                        } catch (Exception ignored) {
-                            if (conn != null) {
-                                try { conn.disconnect(); } catch (Exception ignored2) {}
-                            }
+                                }
+                            });
+                        } else {
+                            registrarErrorComandoHttp("HTTP " + code, cmdLogico);
                         }
+                    } catch (IOException ioErr) {
+                        Log.w(TAG, "Error de red al enviar comando al auto: " + ioErr.getMessage());
+                        registrarErrorComandoHttp("Timeout Wi-Fi (" + ioErr.getClass().getSimpleName() + ")", cmdLogico);
+                    } catch (Exception err) {
+                        Log.e(TAG, "Excepción al despachar comando de motor", err);
+                        registrarErrorComandoHttp("Error: " + err.getMessage(), cmdLogico);
+                    } finally {
+                        cerrarConexionSegura(conn);
                     }
                 }
             } finally {
@@ -1261,6 +1280,27 @@ public class CarControlActivity extends AppCompatActivity implements SensorEvent
                 if (pendingMotorCmd.get() != null || pendingServoAngle.get() != null) {
                     despacharComandoMotorPendiente();
                 }
+            }
+        });
+    }
+
+    private void registrarErrorComandoHttp(final String detalleError, final String cmdFallido) {
+        int fallos = ++consecutiveHttpErrors;
+        // Forzar renovación del handle de red Wi-Fi en el próximo intento
+        cachedWifiNetwork = null;
+        mainHandler.post(() -> {
+            if (isFinishing()) return;
+            if (tvGyroData != null) {
+                tvGyroData.setText(String.format(Locale.US,
+                        "⚠ ERROR CMD [%s]: %s (Fallo #%d)",
+                        cmdFallido != null ? cmdFallido : "SERVO", detalleError, fallos));
+            }
+            if (fallos >= 4 && esp32WifiConnected) {
+                esp32WifiConnected = false;
+                isDirectionButtonHeld = false;
+                activeHeldCommand = null;
+                mainHandler.removeCallbacks(heldCommandRepeatRunnable);
+                actualizarHudSuperior();
             }
         });
     }

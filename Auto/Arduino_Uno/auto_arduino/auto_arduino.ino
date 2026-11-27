@@ -165,9 +165,12 @@ void actualizarObstaculo() {
 void procesarCaracter(char c, Stream &fuente) {
   if (millis() < 2000) return;
 
+  // Ignorar saltos de línea o espacios
+  if (c == '\n' || c == '\r' || c == ' ') return;
+
   if (c == 'V') {
     int ang = fuente.parseInt();
-    if (ang >= 15 && ang <= 160) {
+    if (ang >= 15 && ang <= 75) {
       tUltimoComandoMs = millis();
       moverServo(ang);
     }
@@ -180,7 +183,10 @@ void procesarCaracter(char c, Stream &fuente) {
     case 'L': tUltimoComandoMs = millis(); girarIzquierda();  break;
     case 'R': tUltimoComandoMs = millis(); girarDerecha();    break;
     case 'S': tUltimoComandoMs = millis(); detener();         break;
-    default:  break;
+    default:
+      // Manejo de error: si entra un carácter corrupto por ruido en la línea, frenar por seguridad
+      detener();
+      break;
   }
 }
 
@@ -232,7 +238,13 @@ void loop() {
 
   unsigned long t = millis();
 
-  // 4. Medicion rapida de distancia cada 300 ms
+  // 4. Manejo de error por pérdida de comunicación (Watchdog Fail-Safe de 700 ms):
+  //    Si el auto está en movimiento y se corta la señal de la ESP32-CAM o de la App, frenar solo
+  if (marchaActual != 'S' && (t - tUltimoComandoMs > 700)) {
+    detener();
+  }
+
+  // 5. Medicion rapida de distancia cada 300 ms
   if (t - tUltimaMedicion >= 300) {
     tUltimaMedicion = t;
     actualizarObstaculo();

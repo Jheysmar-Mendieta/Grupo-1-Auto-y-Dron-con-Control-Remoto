@@ -358,7 +358,16 @@ public class TelloVideoDecoder {
 
         try {
             MediaCodec codec = MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_VIDEO_AVC);
-            MediaFormat format = buildAvcFormat(true);
+            String codecName = "";
+            try {
+                codecName = codec.getName() != null ? codec.getName().toLowerCase() : "";
+            } catch (Exception ignored) {}
+            // En emuladores de PC / Android 12 con codec por software (c2.android / omx.google),
+            // KEY_LOW_LATENCY puede trabar la cola de salida; solo activarlo en codecs hardware reales
+            boolean isSoftwareCodec = codecName.contains("c2.android")
+                    || codecName.contains("omx.google")
+                    || codecName.contains("sw");
+            MediaFormat format = buildAvcFormat(!isSoftwareCodec);
             try {
                 codec.configure(format, outputSurface, null, 0);
             } catch (Exception lowLatencyUnsupported) {
