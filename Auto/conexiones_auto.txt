@@ -1,0 +1,27 @@
+CONEXIONES DEL AUTO ROBOT - GRUPO 1
+(ESP32-CAM + ARDUINO UNO + PUENTE H L298N)
+
+1. COMUNICACION ENTRE ESP32-CAM Y ARDUINO UNO:
+   - ESP32 U0T (GPIO 1) -> Arduino Pin 2 (RX)
+   - ESP32 U0R (GPIO 3) -> Arduino Pin 3 (TX)
+   - ESP32 5V           -> Bornera +5V del L298N
+   - ESP32 GND          -> GND compartido (Arduino y L298N)
+
+2. PUENTE H L298N (4 MOTORES) AL ARDUINO UNO:
+   - IN1 -> Pin 9
+   - IN2 -> Pin 8
+   - IN3 -> Pin 11
+   - IN4 -> Pin 10
+   - GND -> GND del Arduino y negativo (-) de las baterias
+   - +12V -> Positivo (+) de las baterias 18650
+
+3. SENSOR ULTRASONICO HC-SR04 AL ARDUINO UNO:
+   - VCC  -> 5V
+   - GND  -> GND
+   - TRIG -> Pin 5
+   - ECHO -> Pin 6
+
+4. SERVO SG90 (CAMARA A 45 GRADOS):
+   - Cable naranja/amarillo (Senal) -> Pin 7 del Arduino Uno
+   - Cable rojo (5V)                -> Bornera +5V del L298N
+   - Cable marron/negro (GND)       -> GND

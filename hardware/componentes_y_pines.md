@@ -11,17 +11,18 @@ Este esquema permite tracción diferencial (tipo tanque / oruga), logrando giros
 
 ## 2. Tabla de Conexión de Pines (Arduino Uno - L298N)
 
-| Pin Arduino | Conexión L298N | Función |
+| Pin Arduino | Conexión L298N / HC-05 | Función |
 | :--- | :--- | :--- |
-| **Pin D5 (PWM)** | ENA | Habilitación y velocidad PWM motores izquierdos |
-| **Pin D6** | IN1 | Dirección A motores izquierdos |
-| **Pin D7** | IN2 | Dirección B motores izquierdos |
-| **Pin D8** | IN3 | Dirección A motores derechos |
-| **Pin D9** | IN4 | Dirección B motores derechos |
-| **Pin D10 (PWM)**| ENB | Habilitación y velocidad PWM motores derechos |
-| **Pin D0 (RX)**  | TX del módulo HC-05 | Recepción de comandos Bluetooth |
-| **Pin D1 (TX)**  | Divisor resistivo hacia RX del HC-05 | Transmisión segura a 3.3V hacia el Bluetooth |
-| **GND**          | Bornera GND del L298N y polo negativo batería | Masa común compartida de todo el circuito |
+| **Pin D2 (RX)**  | TXD del módulo HC-05 | Recepción serie por SoftwareSerial |
+| **Pin D3 (TX)**  | RXD del módulo HC-05 | Transmisión serie por SoftwareSerial |
+| **Pin D8** | IN1 (L298N) | Sentido A Motores Izquierdos (Adelante) |
+| **Pin D9** | IN2 (L298N) | Sentido B Motores Izquierdos (Atrás) |
+| **Pin D10**| IN3 (L298N) | Sentido A Motores Derechos (Adelante) |
+| **Pin D11**| IN4 (L298N) | Sentido B Motores Derechos (Atrás) |
+| **ENA / ENB**| Jumpers colocados a 5V | Velocidad máxima por hardware sin requerir pines PWM adicionales |
+| **GND**          | GND del L298N y polo negativo (-) batería | Masa común compartida de todo el circuito |
+
+> **Nota técnica:** El uso de `SoftwareSerial` en los pines 2 y 3 permite reprogramar el Arduino por cable USB sin necesidad de desconectar el módulo Bluetooth HC-05 cada vez.
 
 ---
 

@@ -2,79 +2,337 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Control Auto & Dron - Grupo 1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, orientation=landscape" />
+  <title>Control Auto y Dron - Grupo 1 (GEdeCon)</title>
+  
+  <!-- Tipografía moderna Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Inter:wght@400;600;700;800&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
-  <div class="cockpit-container">
-    <!-- Encabezado y Estado de Conexión -->
-    <header class="header">
-      <div class="branding">
-        <span class="badge">GRUPO 1</span>
-        <h1>Control Remoto</h1>
+<body class="mode-auto">
+  <!-- Contenedor Principal de la App (Orientado a Pantalla Completa Apaisada) -->
+  <div id="app-root" class="app-viewport">
+
+    <!-- CAPA 0: Cámara Real del Teléfono o Simulación FPV -->
+    <div class="camera-layer">
+      <!-- Video para cámara real -->
+      <video id="live-camera" autoplay playsinline muted></video>
+      <!-- Fondos simulados si la cámara está apagada o en PC -->
+      <div id="simulated-bg-car" class="sim-bg active">
+        <div class="object-tracker-box">
+          <div class="tracker-corner tl"></div>
+          <div class="tracker-corner tr"></div>
+          <div class="tracker-corner bl"></div>
+          <div class="tracker-corner br"></div>
+          <div class="tracker-tag">OBJETIVO: DOG_TRACKER_01</div>
+        </div>
       </div>
-      <div class="connection-status">
-        <span class="status-indicator online"></span>
-        <span id="lbl-status">Listo / Calibrado</span>
+      <div id="simulated-bg-drone" class="sim-bg">
+        <div class="drone-crosshair"></div>
+      </div>
+      <!-- Tinte scrim para garantizar legibilidad -->
+      <div class="camera-scrim"></div>
+    </div>
+
+    <!-- CAPA 1: Barra Superior HUD Común -->
+    <header class="hud-top-bar">
+      <!-- Indicador de Modo en la esquina superior izquierda -->
+      <div class="vehicle-title-tag">
+        <span id="lbl-mode-title" class="mode-label">Auto</span>
+      </div>
+
+      <!-- Botón Menú -->
+      <button id="btn-open-menu" class="btn-top btn-menu" type="button">
+        Menu
+      </button>
+
+      <!-- Grupo de Botones de la Derecha -->
+      <div class="top-actions-right">
+        <button id="btn-top-bluetooth" class="btn-top btn-blue" type="button">
+          <span class="bt-dot disconnected" id="bt-dot"></span>
+          <span id="btn-bt-text">Conectar a BT</span>
+        </button>
+
+        <button id="btn-top-guide" class="btn-top btn-blue" type="button">
+          Guia de Manejo
+        </button>
+
+        <button id="btn-top-switch" class="btn-top btn-blue" type="button">
+          Ir al dron
+        </button>
       </div>
     </header>
 
-    <!-- Selector de Modo de Vehículo -->
-    <section class="mode-selector">
-      <button id="btn-mode-car" class="mode-btn active" type="button">🚗 Modo Auto</button>
-      <button id="btn-mode-drone" class="mode-btn" type="button">🚁 Modo Dron</button>
-    </section>
+    <!-- CAPA 2: Mandos de Control Inferiores - MODO AUTO -->
+    <main id="view-car" class="vehicle-view active">
+      <!-- Mando Izquierdo: Giro Izquierda / Derecha (< y >) -->
+      <div class="controls-left">
+        <button id="btn-car-left" class="nav-btn btn-turn" type="button" aria-label="Giro a la izquierda">
+          &lt;
+        </button>
+        <button id="btn-car-right" class="nav-btn btn-turn" type="button" aria-label="Giro a la derecha">
+          &gt;
+        </button>
+      </div>
 
-    <!-- Panel de Telemetría y Sensor (HUD) -->
-    <section class="telemetry-panel">
-      <h2>Sensores en Tiempo Real (Giroscopio)</h2>
-      <div class="gyro-grid">
-        <div class="gauge-card">
-          <span class="gauge-title">Cabeceo (Pitch / Beta)</span>
-          <div class="gauge-value" id="val-pitch">0°</div>
-          <span class="gauge-sub" id="sub-pitch">Adelante / Atrás</span>
+      <!-- Mando Central: Estado Actual y Switch de Modo Giroscopio -->
+      <div class="controls-center">
+        <!-- Indicador de Comando Activo -->
+        <div id="car-status-pill" class="status-pill">
+          <span id="lbl-car-command">Adelante</span>
         </div>
-        <div class="gauge-card">
-          <span class="gauge-title">Alabeo (Roll / Gamma)</span>
-          <div class="gauge-value" id="val-roll">0°</div>
-          <span class="gauge-sub" id="sub-roll">Giro Izq / Der</span>
+
+        <!-- Switch Modo Giroscopio -->
+        <div class="gyro-switch-container">
+          <span class="gyro-switch-label">Modo giroscopio</span>
+          <label class="switch-ui" for="switch-gyro-car">
+            <input type="checkbox" id="switch-gyro-car" />
+            <span class="slider-round"></span>
+          </label>
         </div>
       </div>
 
-      <!-- Horizonte Artificial Visual -->
-      <div class="horizon-wrapper">
-        <div class="horizon-disc" id="horizon-disc">
-          <div class="horizon-sky"></div>
-          <div class="horizon-ground"></div>
-          <div class="crosshair"></div>
+      <!-- Mando Derecho: Adelante / Atrás (^ y v) -->
+      <div class="controls-right">
+        <button id="btn-car-forward" class="nav-btn btn-drive" type="button" aria-label="Avanzar adelante">
+          ^
+        </button>
+        <button id="btn-car-backward" class="nav-btn btn-drive" type="button" aria-label="Retroceder atrás">
+          v
+        </button>
+      </div>
+    </main>
+
+    <!-- CAPA 3: Mandos de Control Inferiores - MODO DRON -->
+    <main id="view-drone" class="vehicle-view">
+      <!-- Mando Izquierdo: Joystick 360° (Throttle / Yaw) y Botón de Elevación (^) -->
+      <div class="drone-controls-left">
+        <!-- Joystick Físico Analógico Izquierdo -->
+        <div class="joystick-wrapper" id="joystick-left-container">
+          <div class="joystick-base">
+            <div class="joystick-knob" id="joystick-left-knob">
+              <div class="knob-ridges"></div>
+              <div class="knob-center"></div>
+            </div>
+          </div>
+          <span class="stick-label">ALTITUD / GIRO</span>
+        </div>
+
+        <!-- Botón Ascenso / Subir (^) -->
+        <button id="btn-drone-up" class="nav-btn btn-drone-alt" type="button" aria-label="Elevar dron">
+          ^
+        </button>
+      </div>
+
+      <!-- Mando Central: Estado y Switch de Modo Giroscopio -->
+      <div class="controls-center">
+        <!-- Indicador de Comando Activo en Dron -->
+        <div id="drone-status-pill" class="status-pill">
+          <span id="lbl-drone-command">Adelante</span>
+        </div>
+
+        <!-- Switch Modo Giroscopio -->
+        <div class="gyro-switch-container">
+          <span class="gyro-switch-label">Modo giroscopio</span>
+          <label class="switch-ui" for="switch-gyro-drone">
+            <input type="checkbox" id="switch-gyro-drone" />
+            <span class="slider-round"></span>
+          </label>
         </div>
       </div>
-    </section>
 
-    <!-- Panel de Control y Seguridad -->
-    <section class="control-panel">
-      <!-- Botón de permiso para sensores en iOS/Android -->
-      <button id="btn-sensor-toggle" class="action-btn secondary" type="button">
-        Activar Sensor Móvil
-      </button>
+      <!-- Mando Derecho: Botón Descenso (v) y Joystick 360° (Pitch / Roll) -->
+      <div class="drone-controls-right">
+        <!-- Botón Descenso / Bajar (v) -->
+        <button id="btn-drone-down" class="nav-btn btn-drone-alt" type="button" aria-label="Descender dron">
+          v
+        </button>
 
-      <!-- Deadman Switch / Gatillo de Seguridad -->
-      <button id="btn-deadman" class="deadman-btn" type="button">
-        MANTENER PARA CONDUCIR
-      </button>
+        <!-- Joystick Físico Analógico Derecho -->
+        <div class="joystick-wrapper" id="joystick-right-container">
+          <div class="joystick-base">
+            <div class="joystick-knob" id="joystick-right-knob">
+              <div class="knob-ridges"></div>
+              <div class="knob-center"></div>
+            </div>
+          </div>
+          <span class="stick-label">DIRECCIÓN (PITCH/ROLL)</span>
+        </div>
+      </div>
+    </main>
 
-      <!-- Botón de Parada de Emergencia -->
-      <button id="btn-emergency" class="action-btn danger" type="button">
-        PARADA DE EMERGENCIA
-      </button>
-    </section>
+    <!-- Alerta Flotante de Detección de Obstáculo (Sensor Ultrasónico HC-SR04) -->
+    <div id="obstacle-alert" class="obstacle-banner hidden">
+      <div class="obstacle-icon">⚠️</div>
+      <div class="obstacle-text">
+        <strong>¡PARED DETECTADA A MENOS DE 20 CM!</strong>
+        <span>Freno automático de seguridad activado por Arduino</span>
+      </div>
+    </div>
 
-    <footer class="footer">
-      <p>Programación 7° Año • GEdeCon • Onesti - Silvero - Mendieta</p>
-    </footer>
+    <!-- MODAL 1: MENÚ PRINCIPAL Y AJUSTES -->
+    <div id="modal-menu" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>Menú y Configuración</h2>
+          <button class="btn-close-modal" id="btn-close-menu">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="info-group">
+            <div class="info-tag">PROYECTO INSTITUCIONAL</div>
+            <h3>Auto Robot y Dron a Control Remoto</h3>
+            <p><strong>Grupo 1:</strong> Onesti • Silvero • Mendieta</p>
+            <p><strong>Docentes:</strong> Prof. Figueroa Hernán • Prof. Piris Eduardo</p>
+            <p><strong>Materia:</strong> Programación 7° Año • GEdeCon 2026</p>
+          </div>
+
+          <hr class="modal-divider" />
+
+          <h4>Opciones de la Cámara</h4>
+          <div class="toggle-row">
+            <span>Usar Cámara Real del Móvil</span>
+            <button id="btn-toggle-camera" class="btn-modal-action">Activar Cámara</button>
+          </div>
+          <div class="toggle-row">
+            <span>Cambiar Cámara (Frontal / Trasera)</span>
+            <button id="btn-flip-camera" class="btn-modal-action secondary">Alternar Lente</button>
+          </div>
+
+          <hr class="modal-divider" />
+
+          <h4>Opciones del Giroscopio</h4>
+          <div class="toggle-row">
+            <span>Sensibilidad de Inclinación: <b id="val-sensitivity">15°</b></span>
+            <input type="range" id="range-sensitivity" min="5" max="35" value="15" />
+          </div>
+          <div class="toggle-row">
+            <span>Efectos de Sonido Háptico / Motor</span>
+            <input type="checkbox" id="chk-audio" checked />
+          </div>
+
+          <button id="btn-emergency-stop" class="btn-danger-block">
+            🛑 PARADA DE EMERGENCIA TOTAL
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 2: CONECTAR A BLUETOOTH (HC-05 / ESP32) -->
+    <div id="modal-bluetooth" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>Conexión Bluetooth HC-05</h2>
+          <button class="btn-close-modal" id="btn-close-bluetooth">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-desc">
+            Vincula tu teléfono con el módulo Bluetooth del vehículo (Arduino HC-05 o ESP32).
+          </p>
+
+          <div class="bt-status-box">
+            <div class="bt-icon">📡</div>
+            <div class="bt-details">
+              <span class="bt-name" id="bt-device-name">Desconectado</span>
+              <span class="bt-baud">Velocidad: 38400 / 9600 Baud</span>
+            </div>
+          </div>
+
+          <div class="bt-buttons-group">
+            <button id="btn-scan-web-bt" class="btn-primary-blue">
+              Buscar Dispositivos (Web Bluetooth)
+            </button>
+            <button id="btn-sim-connect-bt" class="btn-secondary-dark">
+              Modo Práctica (Simular Conexión)
+            </button>
+            <button id="btn-disconnect-bt" class="btn-danger-dark" disabled>
+              Desconectar
+            </button>
+          </div>
+
+          <div class="terminal-container">
+            <div class="terminal-header">Consola Serial en Vivo:</div>
+            <div id="serial-terminal" class="terminal-logs">
+              <div class="log-line system">[SISTEMA] Listo para emparejar.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 3: GUÍA DE MANEJO (AUTO) -->
+    <div id="modal-guide-car" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>Guía de Manejo - Auto Robot</h2>
+          <button class="btn-close-modal" id="btn-close-guide-car">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="guide-grid">
+            <div class="guide-item">
+              <span class="guide-badge green">&lt; y &gt;</span>
+              <strong>Giro Izquierda / Derecha:</strong>
+              <p>Mueve las ruedas de forma diferencial para virar en el lugar o en curva (Comandos 'L' y 'R').</p>
+            </div>
+            <div class="guide-item">
+              <span class="guide-badge green">^ y v</span>
+              <strong>Avanzar y Retroceder:</strong>
+              <p>Tracción total a través del puente H L298N (Comandos 'F' y 'B'). Al soltar se detiene ('S').</p>
+            </div>
+            <div class="guide-item">
+              <span class="guide-badge blue">Modo Giroscopio</span>
+              <strong>Control por Inclinación:</strong>
+              <p>Activa el switch para manejar como un volante real. Inclina el celular hacia adelante para acelerar y a los lados para doblar.</p>
+            </div>
+            <div class="guide-item">
+              <span class="guide-badge orange">Sensor Ultrasónico</span>
+              <strong>Freno Anticolisión:</strong>
+              <p>El sensor HC-SR04 frontal frena automáticamente los motores a menos de 20 cm para evitar choques con paredes u obstáculos.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 4: GUÍA DE VUELO (DRON) -->
+    <div id="modal-guide-drone" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>Guía de Vuelo - Dron Tello EDU</h2>
+          <button class="btn-close-modal" id="btn-close-guide-drone">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="guide-grid">
+            <div class="guide-item">
+              <span class="guide-badge blue">Joystick Izquierdo</span>
+              <strong>Altitud & Guiñada (Yaw):</strong>
+              <p>Arriba/Abajo sube y baja la altitud. Izquierda/Derecha gira la orientación sobre su propio eje.</p>
+            </div>
+            <div class="guide-item">
+              <span class="guide-badge blue">Joystick Derecho</span>
+              <strong>Traslación (Pitch & Roll):</strong>
+              <p>Mueve el dron adelante, atrás, y desplazamientos laterales hacia la izquierda y derecha.</p>
+            </div>
+            <div class="guide-item">
+              <span class="guide-badge green">^ y v</span>
+              <strong>Despegue y Aterrizaje Asistido:</strong>
+              <p>El botón ^ realiza despegue automático a 1.2 m. El botón v realiza aterrizaje suave y estabilizado.</p>
+            </div>
+            <div class="guide-item">
+              <span class="guide-badge orange">Cámara FPV</span>
+              <strong>Vista en Primera Persona:</strong>
+              <p>La pantalla proyecta el video en vivo para pilotar como si estuvieras en la cabina del dron.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
+  <!-- Scripts -->
   <script src="js/sensors.js"></script>
   <script src="js/app.js"></script>
 </body>

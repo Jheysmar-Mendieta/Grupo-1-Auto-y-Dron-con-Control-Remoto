@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#050811"
+    android:keepScreenOn="true"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
+
+    <!-- BARRA SUPERIOR HUD: IDENTIDAD DEL PROYECTO Y ESTADO DEL SISTEMA -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/status_pill_bg"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="GRUPO 1"
+                android:textColor="#00E5FF"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.06" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="|  Onesti · Silvero · Mendieta  ·  7° Año GEdeCon"
+                android:textColor="#CBD5E1"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/box_status_blue"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:fontFamily="monospace"
+            android:text="ESTACIÓN DE TELEOPERACIÓN v2.0"
+            android:textColor="#4ADE80"
+            android:textSize="10.5sp"
+            android:textStyle="bold" />
+    </RelativeLayout>
+
+    <!-- TARJETAS DE SELECCIÓN DE CABINA (AUTO ROBOT vs DRON TELLO) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <!-- TARJETA 1: CABINA AUTO ROBOT 4WD -->
+        <LinearLayout
+            android:id="@+id/cardSelectCar"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@drawable/card_vehicle_car"
+            android:padding="14dp"
+            android:layout_marginEnd="8dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <!-- Píldora de Protocolo -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/status_pill_bg"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:fontFamily="monospace"
+                android:text="ESP32-CAM WI-FI (:80 / :81 MJPEG) + ARDUINO UNO"
+                android:textColor="#38BDF8"
+                android:textSize="9.5sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="AUTO ROBOT ESP32-CAM + UNO"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cámara FPV + L298N + Servo 45° + Sonar HC-SR04"
+                android:textColor="#00E5FF"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Especificaciones estilo HUD -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center_vertical"
+                android:background="@drawable/hud_panel_bg"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:layout_marginBottom="10dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="▸ Mandos táctiles independientes (Dirección L/R y Tracción F/B)"
+                    android:textColor="#E2E8F0"
+                    android:textSize="10.5sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="▸ Modo Volante por inclinación (acelerómetro con autocentrado)"
+                    android:textColor="#E2E8F0"
+                    android:textSize="10.5sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="▸ Freno de emergencia activo [S] y bloqueo antichoque (&lt; 20 cm)"
+                    android:textColor="#94A3B8"
+                    android:textSize="10.5sp" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnOpenCar"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:minHeight="0dp"
+                android:text="▶  ABRIR CABINA AUTO ROBOT"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="#38BDF8"
+                android:background="@drawable/btn_hover_cyan"
+                app:backgroundTint="@null" />
+        </LinearLayout>
+
+        <!-- TARJETA 2: CABINA DRON TELLO / EDU -->
+        <LinearLayout
+            android:id="@+id/cardSelectDrone"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@drawable/card_vehicle_drone"
+            android:padding="14dp"
+            android:layout_marginStart="8dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <!-- Píldora de Protocolo -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/status_pill_bg"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:fontFamily="monospace"
+                android:text="WI-FI UDP (:8889 / :8890 / :11111) · MODO 2"
+                android:textColor="#4ADE80"
+                android:textSize="9.5sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="DRON TELLO / EDU"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Teleoperación RC 20 Hz + Cámara FPV H.264 en Vivo"
+                android:textColor="#4ADE80"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Especificaciones estilo HUD -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center_vertical"
+                android:background="@drawable/hud_panel_bg"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:layout_marginBottom="10dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="▸ Joysticks virtuales Modo 2 (stream continuo rc a b c d @ 20 Hz)"
+                    android:textColor="#E2E8F0"
+                    android:textSize="10.5sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="▸ Comandos UDP: takeoff, land, hover, emergency y flips 360°"
+                    android:textColor="#E2E8F0"
+                    android:textSize="10.5sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="▸ Video FPV H.264 real del dron y telemetría (BAT / H / TOF / TEMP)"
+                    android:textColor="#94A3B8"
+                    android:textSize="10.5sp" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnOpenDrone"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:minHeight="0dp"
+                android:text="▲  ABRIR CABINA DRON"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="#4ADE80"
+                android:background="@drawable/btn_takeoff_green"
+                app:backgroundTint="@null" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

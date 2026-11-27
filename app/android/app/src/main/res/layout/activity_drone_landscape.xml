@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#050811"
+    android:splitMotionEvents="true"
+    android:keepScreenOn="true">
+
+    <!-- CAPA 0: Stream de Video FPV H.264 real del Dron (UDP Puerto 11111) -->
+    <TextureView
+        android:id="@+id/cameraTextureView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- CAPA 1: Scrim sutil y mensaje de espera cuando aún no ingresa video H.264 -->
+    <View
+        android:id="@+id/cameraOverlayScrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#00000000" />
+
+    <!-- CAPA 1.5: Mira HUD y Toque en Video para Seguimiento de Objetos por Color (por debajo de sticks y botones) -->
+    <com.grupo1.controlauto.TrackingOverlayView
+        android:id="@+id/trackingOverlayView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:id="@+id/layoutVideoPlaceholder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="36dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="14dp"
+        android:background="@drawable/hud_panel_bg">
+
+        <TextView
+            android:id="@+id/tvVideoPlaceholderTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CÁMARA FPV DEL DRON (H.264 · UDP :11111)"
+            android:textColor="#38BDF8"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvVideoStatusHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:text="1. Enciende el dron y conecta tu Wi-Fi a TELLO-XXXXXX\n2. Pulsa 'CONECTAR DRON' arriba a la derecha"
+            android:textColor="#CBD5E1"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <!-- CAPA 2: Cabina HUD de Teleoperación Manual (Modo 2 @ 20Hz) -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:splitMotionEvents="true"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="10dp">
+
+        <!-- BARRA SUPERIOR IZQUIERDA: MENÚ + TELEMETRÍA UDP (:8890) -->
+        <LinearLayout
+            android:id="@+id/topBarLeftGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnBackMenu"
+                    android:layout_width="wrap_content"
+                    android:layout_height="34dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:text="Menú"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/btn_menu_style"
+                    app:backgroundTint="@null"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp" />
+
+                <Button
+                    android:id="@+id/btnEmergency"
+                    android:layout_width="wrap_content"
+                    android:layout_height="34dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:layout_marginStart="8dp"
+                    android:text="EMERGENCIA"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/btn_emergency_red"
+                    app:backgroundTint="@null"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp" />
+            </LinearLayout>
+
+            <!-- HUD de Telemetría en Tiempo Real (bat, h, tof, temp) -->
+            <TextView
+                android:id="@+id/tvFlightState"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/status_pill_bg"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:text="UDP: DESCONECTADO | BAT: --% | H: 0 cm | TOF: -- cm | TEMP: --°C"
+                android:textColor="#E2E8F0"
+                android:textSize="10.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- BARRA SUPERIOR DERECHA: CONEXIÓN WIFI UDP, CÁMARA, COMANDOS EXTRA, GUÍA Y AUTO -->
+        <LinearLayout
+            android:id="@+id/topBarRightButtons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true">
+
+            <Button
+                android:id="@+id/btnConnectDrone"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:text="CONECTAR DRON"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:background="@drawable/btn_blue_header"
+                app:backgroundTint="@null"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:layout_marginEnd="5dp" />
+
+            <Button
+                android:id="@+id/btnToggleTracking"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:text="SEGUIR IA: OFF"
+                android:textColor="#38BDF8"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:background="@drawable/btn_hover_cyan"
+                app:backgroundTint="@null"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:layout_marginEnd="5dp" />
+
+            <Button
+                android:id="@+id/btnToggleCamera"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:text="CAM ON"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:background="@drawable/btn_menu_style"
+                app:backgroundTint="@null"
+                android:paddingStart="9dp"
+                android:paddingEnd="9dp"
+                android:layout_marginEnd="5dp" />
+
+            <Button
+                android:id="@+id/btnExtraCommands"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:text="COMANDOS +"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:background="@drawable/btn_blue_header"
+                app:backgroundTint="@null"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:layout_marginEnd="6dp" />
+
+            <Button
+                android:id="@+id/btnHelpGuide"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:text="Guía"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:background="@drawable/btn_blue_header"
+                app:backgroundTint="@null"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:layout_marginEnd="6dp" />
+
+            <Button
+                android:id="@+id/btnSwitchCar"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:text="Auto"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:background="@drawable/btn_menu_style"
+                app:backgroundTint="@null"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp" />
+        </LinearLayout>
+
+        <!-- CONSOLA CENTRAL INFERIOR: RESPUESTA DRON + MONITOR RC @ 20Hz + BOTONES DISCRETOS -->
+        <LinearLayout
+            android:id="@+id/layoutDroneCenter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="2dp">
+
+            <!-- Monitor de estado, respuesta persistente del dron y trama "rc a b c d" -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/box_status_blue"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:layout_marginBottom="5dp">
+
+                <TextView
+                    android:id="@+id/tvActiveActionCommand"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ESTACIONARIO (HOVER)"
+                    android:textColor="#00E5FF"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvLastCmdReply"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="DRON: Esperando conexión Wi-Fi..."
+                    android:textColor="#FBBF24"
+                    android:fontFamily="monospace"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvActiveSdkCommand"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="rc 0 0 0 0  @ 20Hz"
+                    android:textColor="#E2E8F0"
+                    android:fontFamily="monospace"
+                    android:textSize="10.5sp" />
+            </LinearLayout>
+
+            <!-- Botones de Comandos Discretos UDP: DESPEGAR (takeoff), HOVER (stop), ATERRIZAR (land) -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="4dp">
+
+                <Button
+                    android:id="@+id/btnTakeoff"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:text="▲ DESPEGAR"
+                    android:textColor="#4ADE80"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/btn_takeoff_green"
+                    app:backgroundTint="@null"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:layout_marginEnd="6dp" />
+
+                <Button
+                    android:id="@+id/btnHoverStop"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:text="■ HOVER"
+                    android:textColor="#38BDF8"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/btn_hover_cyan"
+                    app:backgroundTint="@null"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:layout_marginEnd="6dp" />
+
+                <Button
+                    android:id="@+id/btnLand"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:text="▼ ATERRIZAR"
+                    android:textColor="#FCD34D"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/btn_land_amber"
+                    app:backgroundTint="@null"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp" />
+            </LinearLayout>
+
+            <!-- Barra Inferior de Escala de Potencia + Giroscopio Opcional -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/status_pill_bg"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp">
+
+                <Button
+                    android:id="@+id/btnSpeedScale"
+                    android:layout_width="wrap_content"
+                    android:layout_height="26dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:text="Escala: 100%"
+                    android:textColor="#38BDF8"
+                    android:textSize="10.5sp"
+                    android:textStyle="bold"
+                    android:background="@android:color/transparent"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="| Giro:"
+                    android:textColor="#CBD5E1"
+                    android:textSize="10.5sp"
+                    android:layout_marginEnd="4dp" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/switchGyroDrone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="26dp" />
+
+                <Button
+                    android:id="@+id/btnCalibrate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="26dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:text="Centrar"
+                    android:textColor="#FBBF24"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:background="@android:color/transparent"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="4dp"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- STICK IZQUIERDO (MODO 2): THROTTLE / ALTURA (c) + YAW / GIRO (d) - Máxima prioridad Z táctil -->
+        <LinearLayout
+            android:id="@+id/layoutDroneLeft"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentStart="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ALTURA (c) · GIRO (d)"
+                android:textColor="#94A3B8"
+                android:textSize="9.5sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="2dp" />
+
+            <com.grupo1.controlauto.JoystickView
+                android:id="@+id/joystickLeft"
+                android:layout_width="156dp"
+                android:layout_height="156dp" />
+        </LinearLayout>
+
+        <!-- STICK DERECHO (MODO 2): PITCH / AVANCE (b) + ROLL / LATERAL (a) -->
+        <LinearLayout
+            android:id="@+id/layoutDroneRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="AVANCE (b) · LATERAL (a)"
+                android:textColor="#94A3B8"
+                android:textSize="9.5sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="2dp" />
+
+            <com.grupo1.controlauto.JoystickView
+                android:id="@+id/joystickRight"
+                android:layout_width="156dp"
+                android:layout_height="156dp" />
+        </LinearLayout>
+
+    </RelativeLayout>
+</FrameLayout>

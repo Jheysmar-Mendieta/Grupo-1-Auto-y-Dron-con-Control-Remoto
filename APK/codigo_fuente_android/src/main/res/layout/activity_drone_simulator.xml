@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg_dark"
+    android:padding="16dp"
+    android:gravity="center_horizontal">
+
+    <!-- Barra superior -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="10dp">
+
+        <Button
+            android:id="@+id/btnBackToCar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="AUTO"
+            android:textSize="12sp"
+            android:backgroundTint="#334155"
+            android:textColor="@color/text_white" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SIMULADOR DE DRON"
+            android:textColor="@color/cyan_accent"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:gravity="center" />
+    </LinearLayout>
+
+    <!-- Indicador de Estado de Vuelo -->
+    <TextView
+        android:id="@+id/tvFlightState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ESTADO: EN TIERRA (MOTORES APAGADOS)"
+        android:textColor="@color/text_muted"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:background="#1E293B"
+        android:padding="8dp"
+        android:layout_marginBottom="12dp" />
+
+    <!-- Gran Cartel de Dirección de Vuelo -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#1E293B"
+        android:padding="16dp"
+        android:gravity="center"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DIRECCIÓN DE VUELO"
+            android:textColor="@color/text_muted"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/tvFlightDirection"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="EN REPOSO / TIERRA"
+            android:textColor="@color/cyan_accent"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginTop="4dp" />
+
+        <!-- Horizonte / Inclinación Visual -->
+        <FrameLayout
+            android:id="@+id/frameHorizon"
+            android:layout_width="140dp"
+            android:layout_height="70dp"
+            android:background="#0F172A"
+            android:layout_marginTop="10dp">
+
+            <View
+                android:id="@+id/viewHorizonBar"
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                android:layout_gravity="center"
+                android:background="@color/green_go" />
+
+            <View
+                android:layout_width="4dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:background="@color/cyan_accent" />
+        </FrameLayout>
+
+        <!-- Ángulos numéricos -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="8dp">
+
+            <TextView
+                android:id="@+id/tvPitchAngle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pitch: 0°"
+                android:textColor="@color/text_white"
+                android:textSize="12sp"
+                android:layout_marginEnd="16dp" />
+
+            <TextView
+                android:id="@+id/tvRollAngle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Roll: 0°"
+                android:textColor="@color/text_white"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Telemetría de los 4 Rotores (M1, M2, M3, M4) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#1E293B"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="POTENCIA DE ROTORES (CUADRICÓPTERO)"
+            android:textColor="@color/text_muted"
+            android:textSize="11sp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvMotorFL"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="M1 (Del-Izq):\n0%"
+                android:textColor="@color/text_white"
+                android:textSize="11sp"
+                android:gravity="center" />
+
+            <TextView
+                android:id="@+id/tvMotorFR"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="M2 (Del-Der):\n0%"
+                android:textColor="@color/text_white"
+                android:textSize="11sp"
+                android:gravity="center" />
+
+            <TextView
+                android:id="@+id/tvMotorBL"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="M3 (Tras-Izq):\n0%"
+                android:textColor="@color/text_white"
+                android:textSize="11sp"
+                android:gravity="center" />
+
+            <TextView
+                android:id="@+id/tvMotorBR"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="M4 (Tras-Der):\n0%"
+                android:textColor="@color/text_white"
+                android:textSize="11sp"
+                android:gravity="center" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Botón de Hombre Muerto: MANTENER PARA VOLAR -->
+    <Button
+        android:id="@+id/btnHoldToFly"
+        android:layout_width="match_parent"
+        android:layout_height="90dp"
+        android:text="MANTENER PARA VOLAR\n(Incliná el celular mientras apretás)"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:backgroundTint="@color/green_go"
+        android:textColor="@color/text_white"
+        android:layout_marginBottom="6dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Soltá el botón para aterrizar y apagar motores"
+        android:textColor="@color/text_muted"
+        android:textSize="11sp" />
+
+</LinearLayout>
