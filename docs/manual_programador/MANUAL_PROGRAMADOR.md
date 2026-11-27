@@ -1,20 +1,11 @@
-# Manual del Programador - Arquitectura Técnica (Grupo 1)
+# Manual del Programador (Grupo 1)
 
-## 1. Arquitectura del Sistema
-El sistema se basa en una arquitectura cliente-servidor desacoplada:
-* **Capa de Captura y Presentación (Frontend Móvil):**
-  * `app/js/sensors.js`: Encapsula `window.DeviceOrientationEvent`, aplica filtros de umbral (Deadzone de ±4°) y normalización angular.
-  * `app/js/app.js`: Coordina la máquina de estados de la interfaz, el horizonte artificial y la serialización de comandos.
-* **Capa de Hardware y Actuación (Firmware Microcontrolador):**
-  * `firmware/auto_arduino/auto_arduino.ino`: Decodifica la trama serial y aplica modulación por ancho de pulsos (PWM) en el puente H L298N.
-
-## 2. Protocolo de Comunicación
-Los paquetes se transmiten en formato ASCII delimitado por saltos de línea `\n`:
-* **Comando de movimiento:** `M:<MODO>,P:<PITCH>,R:<ROLL>\n`
-  * `MODO`: `CAR` o `DRONE`
-  * `PITCH`: Ángulo entero entre -45 y +45 (Inclinación frontal/posterior)
-  * `ROLL`: Ángulo entero entre -45 y +45 (Inclinación lateral)
-* **Comando de parada neutral:** `STOP\n`
-
-## 3. Mapeo Cinemático
-La señal de Pitch se mapea linealmente a valores de PWM (0 a 255) para controlar la velocidad, mientras que el Roll ajusta de manera diferencial la velocidad entre las ruedas izquierdas y derechas para lograr el viraje.
+## 1. Estructura del Sistema
+* **Aplicacion Android (`APK/`):**
+  * Hecha en Java para Android. Se conecta por Wi-Fi HTTP a la IP `192.168.4.1`.
+  * Recibe el video MJPEG en el puerto `81` (`/stream`) y envia los comandos en el puerto `80` (`/action?go=F|B|L|R|S` y `/action?servo=45`).
+* **ESP32-CAM (`Auto/ESP32_CAM/`):**
+  * Crea el punto de acceso Wi-Fi `AutoRobot_Grupo1`, transmite el video de la camara OV2640 y le pasa los comandos por puerto serie (`9600 baudios`) al Arduino Uno.
+* **Arduino Uno (`Auto/Arduino_Uno/`):**
+  * Recibe los comandos en el Pin 2 (RX) desde la ESP32-CAM.
+  * Controla el puente H L298N (Pines 8, 9, 10 y 11), el servo SG90 en el Pin 7 (centrado en 45 grados) y el sensor ultrasonico HC-SR04 en los Pines 5 (Trig) y 6 (Echo).
