@@ -25,12 +25,11 @@ read_serial.ps1
 ArduinoUno_Auto_Grupo1/
 ESP32CAM_Auto_Grupo1/
 Sistema_Auto_WiFi_Arduino_ESP32/
-firmware/test_motores/
-ControlAutoDron_Grupo1.apk
-app/ControlAutoDron_Grupo1.apk
-app/ControlAuto_Grupo1.aia
-app/generar_aia.py
-app/COMO_OBTENER_EL_APK.md
+firmware/
+app/
+docs/
+/ControlAutoDron_Grupo1.apk
+!APK/ControlAutoDron_Grupo1.apk
 
 # Archivos de Sistema Operativo
 .DS_Store
@@ -41,7 +40,3 @@ desktop.ini
 .vscode/
 .idea/
 *.swp
-
-# Evitar carpetas duplicadas en GitHub (ya estan en APK, Auto y Dron)
-firmware/
-app/
